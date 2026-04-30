@@ -27,19 +27,27 @@ async function generateInterViewReportController(req, res) {
     //     ...interViewReportByAi
     // })
 
-    let resumeText = "";
+
+    try {
+        let resumeText = "";
         if (req.file) {
-            const resumeContent = await (new pdfParse.PDFParse(Uint8Array.from(req.file.buffer))).getText();
+            const resumeContent = await pdfParse(req.file.buffer); // Updated for standard pdf-parse usage
             resumeText = resumeContent.text;
         }
 
         const { selfDescription, jobDescription } = req.body;
 
+        // AI Generation Call
         const interViewReportByAi = await generateInterviewReport({
             resume: resumeText || "No resume provided",
             selfDescription,
             jobDescription
         });
+
+        // Agar AI report fail ho jaye toh error bhejdo
+        if (!interViewReportByAi) {
+            throw new Error("AI Service failed to generate report");
+        }
 
         const interviewReport = await interviewReportModel.create({
             user: req.user.id,
@@ -49,11 +57,18 @@ async function generateInterViewReportController(req, res) {
             ...interViewReportByAi
         });
 
-    res.status(201).json({
-        message: "Interview report generated successfully.",
-        interviewReport
-    })
+        res.status(201).json({
+            message: "Interview report generated successfully.",
+            interviewReport
+        });
 
+    } catch (error) {
+        console.error("GENERATION ERROR:", error);
+        res.status(500).json({
+            message: "Internal Server Error during AI generation",
+            error: error.message
+        });
+    }
 }
 
 /**
