@@ -6,11 +6,24 @@ const app = express()
 
 app.use(express.json())
 app.use(cookieParser())
+// app.use(cors({
+//     // origin: process.env.FRONTEND_URL || "http://localhost:5173",
+//     origin: [process.env.FRONTEND_URL, "https://interview-ai-project-delta.vercel.app", "http://localhost:5173"],
+//     credentials: true
+// }))
+
+
+
 app.use(cors({
-    // origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    origin: [process.env.FRONTEND_URL, "https://interview-ai-project-delta.vercel.app", "http://localhost:5173"],
-    credentials: true
-}))
+    origin: 'https://interview-ai-project-delta.vercel.app', // No trailing slash
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
+
+
 
 /* require all the routes here */
 const authRouter = require("./routes/auth.routes")
